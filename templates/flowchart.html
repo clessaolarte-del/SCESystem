@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="panel card">
+    <h3>Available Equipment</h3>
+    <div class="equipment-grid">
+        {% for item in equipment %}
+        <div class="equip-card">
+            <img src="{{ item.image_url }}" alt="{{ item.name }}">
+            <div class="equip-body">
+                <div class="equip-title">{{ item.name }}</div>
+                <div class="equip-meta">Category: {{ item.category }}</div>
+                <div class="equip-meta">Location: {{ item.location }}</div>
+                <div class="equip-meta">Condition: {{ item.condition }}</div>
+                <div class="equip-meta">Available: {{ item.available_quantity }}/{{ item.quantity }}</div>
+                <div class="equip-actions">
+                    <span class="pill {% if item.available_quantity > 0 %}good{% else %}warning{% endif %}">
+                        {% if item.available_quantity > 0 %}Available{% else %}Unavailable{% endif %}
+                    </span>
+                    {% if current_user.user_type == 'student' %}
+                    <button class="btn btn-primary" type="button" onclick="openBorrowModal('{{ item.id }}', '{{ item.name }}')">Borrow</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if current_user.user_type == 'student' %}
+<div class="panel card" style="margin-top: 24px;">
+    <h3>My Borrowings</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Purpose</th>
+                <th>Due</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in my_borrowings %}
+            <tr>
+                <td>{{ item.equipment_name }}</td>
+                <td>{{ item.purpose }}</td>
+                <td>{{ item.due_at or 'N/A' }}</td>
+                <td><span class="pill {% if item.status == 'borrowed' %}warning{% else %}good{% endif %}">{{ item.status|title }}</span></td>
+                <td>
+                    {% if item.status == 'borrowed' %}
+                    <form method="POST" style="margin:0;">
+                        <input type="hidden" name="action" value="return">
+                        <input type="hidden" name="transaction_id" value="{{ item.id }}">
+                        <input type="hidden" name="equipment_id" value="{{ item.equipment_id }}">
+                        <button class="btn btn-secondary" type="submit">Return</button>
+                    </form>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">No equipment currently borrowed.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="panel card" style="margin-top: 24px;">
+    <h3>Borrowing Records</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Equipment</th>
+                <th>Purpose</th>
+                <th>Status</th>
+                <th>Borrowed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in my_borrowings %}
+            <tr>
+                <td>{{ item.user_name }}</td>
+                <td>{{ item.equipment_name }}</td>
+                <td>{{ item.purpose }}</td>
+                <td><span class="pill {% if item.status == 'borrowed' %}warning{% else %}good{% endif %}">{{ item.status|title }}</span></td>
+                <td>{{ item.borrowed_at }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">No records available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div id="borrowModal" class="modal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Borrow Equipment</h3>
+            <button class="close-btn" type="button" onclick="closeBorrowModal()">×</button>
+        </div>
+
+        <form method="POST" class="auth-form">
+            <input type="hidden" name="action" value="borrow">
+            <input type="hidden" id="equipment_id" name="equipment_id">
+
+            <div class="field">
+                <label>Equipment</label>
+                <input id="equipment_name" type="text" disabled>
+            </div>
+
+            <div class="field">
+                <label for="purpose">Purpose of Borrowing</label>
+                <input id="purpose" name="purpose" type="text" value="Research Project" required>
+            </div>
+
+            <div class="field">
+                <label for="location">Office / Location</label>
+                <select id="location" name="location">
+                    <option value="IT Office">IT Office</option>
+                    <option value="Library">Library</option>
+                    <option value="Audio Room">Audio Room</option>
+                    <option value="AV Room">AV Room</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="due_at">Date and Time Due</label>
+                <input id="due_at" name="due_at" type="datetime-local" required>
+            </div>
+
+            <button class="btn btn-primary" type="submit">Borrow Equipment</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openBorrowModal(id, name) {
+    document.getElementById('equipment_id').value = id;
+    document.getElementById('equipment_name').value = name;
+    document.getElementById('borrowModal').classList.add('show');
+}
+
+function closeBorrowModal() {
+    document.getElementById('borrowModal').classList.remove('show');
+}
+</script>
+{% endblock %}

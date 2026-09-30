@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block auth_content %}
+<div class="form-card">
+    <h2 style="margin-top: 0;">Create Account</h2>
+    <form method="POST" class="auth-form">
+        <div class="field">
+            <label for="name">Full Name</label>
+            <input id="name" name="name" type="text" placeholder="Enter full name" required>
+        </div>
+
+        <div class="field">
+            <label for="email">Email Address</label>
+            <input id="email" name="email" type="email" placeholder="Enter email address" required>
+        </div>
+
+        <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter password" required>
+        </div>
+
+        <div class="field">
+            <label for="user_type">User Type</label>
+            <select id="user_type" name="user_type">
+                <option value="student">Student</option>
+                <option value="staff">Staff / Faculty</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Register</button>
+    </form>
+
+    <p style="margin-top: 18px; text-align: center; color: #475569;">
+        Already have an account? <a href="{{ url_for('login') }}" style="color: #1f5ab7; font-weight: 700;">Log in</a>
+    </p>
+</div>
+{% endblock %}

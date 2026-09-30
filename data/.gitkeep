@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="panel card">
+    <h3>Equipment Reports</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Equipment</th>
+                <th>Purpose</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Borrowed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in transactions %}
+            <tr>
+                <td>{{ item.user_name }}</td>
+                <td>{{ item.equipment_name }}</td>
+                <td>{{ item.purpose }}</td>
+                <td>{{ item.location }}</td>
+                <td><span class="pill {% if item.status == 'borrowed' %}warning{% else %}good{% endif %}">{{ item.status|title }}</span></td>
+                <td>{{ item.borrowed_at }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">No equipment transactions yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

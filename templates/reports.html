@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flowchart-wrap">
+    <div class="flowchart">
+        <div class="node primary">START</div>
+        <div class="arrow"></div>
+        <div class="node action">CHOOSE ACTION<br><small>(Login or Create Account)</small></div>
+
+        <div class="flow-row">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+                <div class="node success">CREATE ACCOUNT</div>
+                <div class="arrow"></div>
+                <div class="node small">Select User Type</div>
+                <div class="arrow"></div>
+                <div class="node small">Student / Staff / Faculty</div>
+                <div class="arrow"></div>
+                <div class="node small">Fill in Registration Info</div>
+                <div class="arrow"></div>
+                <div class="node small">Create Account</div>
+                <div class="arrow"></div>
+                <div class="node small">Account Created</div>
+                <div class="arrow"></div>
+                <div class="node small">Go to Login</div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+                <div class="node success">LOGIN</div>
+                <div class="arrow"></div>
+                <div class="node small">Select User Type</div>
+                <div class="arrow"></div>
+                <div class="node small">Student / Staff / Faculty</div>
+                <div class="arrow"></div>
+                <div class="node small">Enter Email and Password</div>
+                <div class="arrow"></div>
+                <div class="node warning">Valid Credentials?</div>
+                <div class="arrow"></div>
+                <div class="node small">Dashboard</div>
+            </div>
+        </div>
+
+        <div class="flow-row" style="margin-top: 18px;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+                <div class="node action">STUDENT DASHBOARD</div>
+                <div class="arrow"></div>
+                <div class="node small">View Available Equipment</div>
+                <div class="arrow"></div>
+                <div class="node small">Submit Borrowing Request</div>
+                <div class="arrow"></div>
+                <div class="node small">Select Office / Location</div>
+                <div class="arrow"></div>
+                <div class="node small">Record Borrow Date & Time</div>
+                <div class="arrow"></div>
+                <div class="node small">Return Equipment</div>
+                <div class="arrow"></div>
+                <div class="node small">Select Office / Location</div>
+                <div class="arrow"></div>
+                <div class="node small">Record Return Date & Time</div>
+                <div class="arrow"></div>
+                <div class="node small">Update Return Status</div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+                <div class="node action">STAFF / FACULTY DASHBOARD</div>
+                <div class="arrow"></div>
+                <div class="node small">Manage Equipment</div>
+                <div class="arrow"></div>
+                <div class="node small">Monitor Transactions</div>
+                <div class="arrow"></div>
+                <div class="node small">Verify Returned Equipment</div>
+                <div class="arrow"></div>
+                <div class="node warning">Equipment Condition</div>
+                <div class="arrow"></div>
+                <div class="flow-row" style="gap: 18px;">
+                    <div class="node small">Mark as Returned</div>
+                    <div class="node small">Record Damage</div>
+                    <div class="node small">Report Missing</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="node small">Apply Penalty / Generate Reports</div>
+            </div>
+        </div>
+
+        <div class="arrow"></div>
+        <div class="node primary">END</div>
+    </div>
+</div>
+{% endblock %}

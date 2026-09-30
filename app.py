@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 from datetime import datetime, timedelta
+from functools import wraps
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "sersystem-secret-key"
@@ -19,8 +20,8 @@ def get_db():
 
 def init_db():
     conn = get_db()
-    conn.execute(
-        """
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -28,10 +29,9 @@ def init_db():
             password_hash TEXT NOT NULL,
             user_type TEXT NOT NULL CHECK(user_type IN ('student', 'staff'))
         )
-        """
-    )
-    conn.execute(
-        """
+    """)
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS equipment (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -43,10 +43,9 @@ def init_db():
             image_url TEXT,
             description TEXT
         )
-        """
-    )
-    conn.execute(
-        """
+    """)
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             equipment_id INTEGER NOT NULL,
@@ -61,34 +60,33 @@ def init_db():
             FOREIGN KEY (equipment_id) REFERENCES equipment (id),
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
-        """
-    )
+    """)
 
     if conn.execute("SELECT COUNT(*) FROM equipment").fetchone()[0] == 0:
         sample_equipment = [
             ("Laptop (Dell)", "Laptop", "IT Office", "Good", 5, 5,
-             "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
+             "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=500&h=400&q=80",
              "Dell laptop for academic and project use."),
             ("Projector", "Projector", "AV Room", "Good", 3, 3,
-             "https://images.unsplash.com/photo-1516321165247-4aa89a48be28?auto=format&fit=crop&w=800&q=80",
-             "Projector for classroom presentations and demonstrations."),
+             "https://images.unsplash.com/photo-1516321165247-4aa89a48be28?auto=format&fit=crop&w=500&h=400&q=80",
+             "Projector for classroom presentations."),
             ("Camera (Canon)", "Camera", "IT Office", "Good", 4, 4,
-             "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
-             "Canon camera for media and photo assignments."),
+             "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=500&h=400&q=80",
+             "Canon camera for media assignments."),
             ("Tripod", "Accessories", "IT Office", "Good", 6, 6,
-             "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80",
+             "https://images.unsplash.com/photo-1610827033614-f20a73aee18c?auto=format&fit=crop&w=500&h=400&q=80",
              "Adjustable tripod for camera support."),
             ("Microphone", "Audio", "Audio Room", "Good", 5, 5,
-             "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=800&q=80",
-             "Portable microphone for presentations and recording."),
+             "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=500&h=400&q=80",
+             "Portable microphone for presentations."),
             ("Speaker", "Audio", "Audio Room", "Good", 4, 4,
-             "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80",
+             "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=500&h=400&q=80",
              "High-quality classroom speaker."),
             ("Tablet", "Tablet", "Library", "Good", 4, 4,
-             "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
-             "Tablet for class notes and research tasks."),
+             "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=500&h=400&q=80",
+             "Tablet for class notes and research."),
             ("Whiteboard", "Office", "Classroom 1", "Good", 2, 2,
-             "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80",
+             "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=500&h=400&q=80",
              "Portable whiteboard for team activities.")
         ]
         conn.executemany(
@@ -121,14 +119,11 @@ def current_user():
 
 
 def login_required(f):
-    from functools import wraps
-
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not session.get("user_id"):
             return redirect(url_for("login"))
         return f(*args, **kwargs)
-
     return wrapper
 
 
@@ -162,7 +157,6 @@ def login():
             session["user_id"] = user["id"]
             session["user_type"] = user["user_type"]
             session["name"] = user["name"]
-            flash(f"Welcome back, {user['name']}!", "success")
             return redirect(url_for("dashboard"))
 
         flash("Invalid email or password.", "error")
@@ -215,7 +209,6 @@ def dashboard():
     user = current_user()
     conn = get_db()
 
-    equipment = conn.execute("SELECT * FROM equipment ORDER BY id ASC").fetchall()
     recent_transactions = conn.execute(
         """
         SELECT t.*, e.name AS equipment_name
@@ -228,30 +221,24 @@ def dashboard():
         (user["id"],),
     ).fetchall()
 
+    equipment = conn.execute("SELECT * FROM equipment ORDER BY id ASC LIMIT 8").fetchall()
+
     if user["user_type"] == "student":
-        borrowed_count = conn.execute(
-            "SELECT COUNT(*) FROM transactions WHERE user_id = ? AND status = 'borrowed'",
-            (user["id"],),
-        ).fetchone()[0]
-        metrics = {
-            "total_equipment": conn.execute("SELECT COUNT(*) FROM equipment").fetchone()[0],
-            "available": conn.execute("SELECT SUM(available_quantity) FROM equipment").fetchone()[0] or 0,
-            "borrowed": borrowed_count,
-            "returned": conn.execute(
-                "SELECT COUNT(*) FROM transactions WHERE user_id = ? AND status = 'returned'",
-                (user["id"],),
-            ).fetchone()[0],
-        }
+        borrowed_count = conn.execute("SELECT COUNT(*) FROM transactions WHERE user_id = ? AND status = 'borrowed'", (user["id"],)).fetchone()[0]
+        returned_count = conn.execute("SELECT COUNT(*) FROM transactions WHERE user_id = ? AND status = 'returned'", (user["id"],)).fetchone()[0]
     else:
-        metrics = {
-            "total_equipment": conn.execute("SELECT COUNT(*) FROM equipment").fetchone()[0],
-            "available": conn.execute("SELECT SUM(available_quantity) FROM equipment").fetchone()[0] or 0,
-            "borrowed": conn.execute("SELECT COUNT(*) FROM transactions WHERE status = 'borrowed'").fetchone()[0],
-            "returned": conn.execute("SELECT COUNT(*) FROM transactions WHERE status = 'returned'").fetchone()[0],
-        }
+        borrowed_count = conn.execute("SELECT COUNT(*) FROM transactions WHERE status = 'borrowed'").fetchone()[0]
+        returned_count = conn.execute("SELECT COUNT(*) FROM transactions WHERE status = 'returned'").fetchone()[0]
+
+    metrics = {
+        "total_equipment": conn.execute("SELECT COUNT(*) FROM equipment").fetchone()[0],
+        "available": conn.execute("SELECT SUM(available_quantity) FROM equipment").fetchone()[0] or 0,
+        "borrowed": borrowed_count,
+        "returned": returned_count,
+    }
 
     conn.close()
-    return render_template("dashboard.html", user=user, equipment=equipment, recent_transactions=recent_transactions, metrics=metrics)
+    return render_template("dashboard.html", metrics=metrics, equipment=equipment, recent_transactions=recent_transactions, page_title="Dashboard")
 
 
 @app.route("/equipment", methods=["GET", "POST"])
@@ -296,10 +283,9 @@ def equipment():
         if action == "return":
             transaction_id = int(request.form.get("transaction_id"))
             equipment_id = int(request.form.get("equipment_id"))
-            remarks = request.form.get("remarks", "")
             conn.execute(
-                "UPDATE transactions SET returned_at = ?, status = 'returned', remarks = ? WHERE id = ? AND user_id = ?",
-                (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), remarks, transaction_id, user["id"]),
+                "UPDATE transactions SET returned_at = ?, status = 'returned' WHERE id = ? AND user_id = ?",
+                (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), transaction_id, user["id"]),
             )
             conn.execute(
                 "UPDATE equipment SET available_quantity = available_quantity + 1 WHERE id = ?",
@@ -310,11 +296,11 @@ def equipment():
             return redirect(url_for("equipment"))
 
     equipment_list = conn.execute("SELECT * FROM equipment ORDER BY category, name").fetchall()
-    my_borrowings = []
+
     if user["user_type"] == "student":
         my_borrowings = conn.execute(
             """
-            SELECT t.*, e.name AS equipment_name, e.location AS equipment_location
+            SELECT t.*, e.name AS equipment_name
             FROM transactions t
             JOIN equipment e ON e.id = t.equipment_id
             WHERE t.user_id = ?
@@ -325,7 +311,7 @@ def equipment():
     else:
         my_borrowings = conn.execute(
             """
-            SELECT t.*, e.name AS equipment_name, e.location AS equipment_location, u.name AS user_name
+            SELECT t.*, e.name AS equipment_name, u.name AS user_name
             FROM transactions t
             JOIN equipment e ON e.id = t.equipment_id
             JOIN users u ON u.id = t.user_id
@@ -335,14 +321,7 @@ def equipment():
         ).fetchall()
 
     conn.close()
-    return render_template("equipment.html", user=user, equipment=equipment_list, my_borrowings=my_borrowings)
-
-
-@app.route("/flowchart")
-@login_required
-def flowchart():
-    user = current_user()
-    return render_template("flowchart.html", user=user)
+    return render_template("equipment.html", equipment=equipment_list, my_borrowings=my_borrowings, page_title="Equipment")
 
 
 @app.route("/reports")
@@ -364,7 +343,8 @@ def reports():
         """
     ).fetchall()
     conn.close()
-    return render_template("reports.html", user=user, transactions=transactions)
+
+    return render_template("reports.html", transactions=transactions, page_title="Reports")
 
 
 init_db()
@@ -372,5 +352,3 @@ init_db()
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
-
-

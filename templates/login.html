@@ -1,27 +1,22 @@
 {% extends 'base.html' %}
+
 {% block auth %}
-<div style="min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, #edf3ff 0%, #dbe9ff 100%); padding: 30px;">
-    <div style="display: grid; grid-template-columns: 1.2fr 1fr; width: min(1100px, 100%); background: rgba(255,255,255,0.78); border-radius: 22px; box-shadow: 0 20px 50px rgba(15,23,42,0.08); overflow: hidden;">
-        <div style="padding: 32px; background: linear-gradient(180deg, rgba(187,213,255,0.6), rgba(220,234,255,0.35));">
-            <div style="display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.2rem; margin-bottom: 20px;">
-                <div style="width: 42px; height: 42px; border-radius: 12px; background: #1f4f86; color: white; display: grid; place-items: center;">🎓</div>
-                SERSytem
+<div class="auth-page">
+    <div class="auth-wrapper">
+        <div class="auth-left">
+            <div class="auth-brand">
+                <div class="brand-icon">🎓</div>
+                <span>SERSytem</span>
             </div>
-
-            <h1 style="font-size: 3rem; line-height: 1.1; margin: 0 0 18px; color: #1f2937; max-width: 420px;">
-                Student Equipment and Returning Management System
-            </h1>
-            <p style="font-size: 1.05rem; color: #475569; line-height: 1.7; margin: 0 0 24px; max-width: 440px;">
-                Borrowing and returning equipment has never been easier. Manage requests, equipment status, and student records in one place.
-            </p>
-
-            <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <h1>Student Equipment and Returning Management System</h1>
+            <p>Borrow and return equipment with a simple and efficient system for managing school equipment and student transactions.</p>
+            <div class="auth-actions">
                 <a href="{{ url_for('login') }}" class="btn btn-primary">Log In</a>
                 <a href="{{ url_for('register') }}" class="btn btn-secondary">Create Account</a>
             </div>
         </div>
 
-        <div style="padding: 32px; background: white;">
+        <div class="auth-right">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -29,7 +24,39 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-            {% block auth_content %}{% endblock %}
+
+            <h2>Welcome Back!</h2>
+            <form method="POST" class="auth-form">
+                <div class="field">
+                    <label for="email">Email Address</label>
+                    <input id="email" name="email" type="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" placeholder="Enter your password" required>
+                </div>
+
+                <div class="field">
+                    <label for="user_type">User Type</label>
+                    <select id="user_type" name="user_type">
+                        <option value="student">Student</option>
+                        <option value="staff">Staff / Faculty</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%;">Log In</button>
+            </form>
+
+            <p class="auth-link">
+                Don't have an account? <a href="{{ url_for('register') }}">Create Account</a>
+            </p>
+
+            <div class="demo-info">
+                <strong>Demo Accounts:</strong><br>
+                Student: student@example.com / student123<br>
+                Staff: admin@example.com / admin123
+            </div>
         </div>
     </div>
 </div>
